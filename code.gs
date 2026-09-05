@@ -8,8 +8,8 @@
 // Add: SPREADSHEET_ID, METALS_API_KEY, ANTHROPIC_API_KEY, LINE_CHANNEL_ACCESS_TOKEN, LINE_USER_ID
 
 var SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID') || '1-bq0P6KeqJZGQjkuEqQWq11krKYYL1h5A22mGQpBIkM';
-var METALS_API_KEY = PropertiesService.getScriptProperties().getProperty('METALS_API_KEY') || 'QIOHCD6MLLAJ9LUMNDSD240UMNDSD';
-var ANTHROPIC_API_KEY = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY') || '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';
+var METALS_API_KEY = PropertiesService.getScriptProperties().getProperty('METALS_API_KEY');
+var ANTHROPIC_API_KEY = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
 var LINE_CHANNEL_ACCESS_TOKEN = PropertiesService.getScriptProperties().getProperty('LINE_CHANNEL_ACCESS_TOKEN') || '';
 var LINE_USER_ID = PropertiesService.getScriptProperties().getProperty('LINE_USER_ID') || '';
 
@@ -1557,7 +1557,7 @@ function analyzeMarketNews(asset, period) {
     var apiUrl = 'https://api.anthropic.com/v1/messages';
     
     var payload = {
-      model: 'claude-3-haiku-20240307',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 4096,
       messages: [{
         role: 'user',
@@ -1577,7 +1577,7 @@ function analyzeMarketNews(asset, period) {
     };
     
     Logger.log('Calling Claude API with Haiku (basic model)...');
-    Logger.log('Model: claude-3-haiku-20240307');
+    Logger.log('Model: claude-haiku-4-5-20251001');
     Logger.log('Current Price: $' + currentPrice);
     Logger.log('Analysis Date: ' + dateStr);
     
@@ -1702,7 +1702,7 @@ function translateAnalysisToThai(englishText) {
     var apiUrl = 'https://api.anthropic.com/v1/messages';
     
     var payload = {
-      model: 'claude-3-haiku-20240307',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 4096,
       messages: [{
         role: 'user',
