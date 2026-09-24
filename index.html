@@ -378,6 +378,27 @@
             </div>
         </div>
 
+        <!-- Last Updated Indicator -->
+        <div class="flex items-center justify-center gap-2 mt-3 mb-1">
+            <span class="live-dot"></span>
+            <span class="text-xs text-slate-400">อัปเดตล่าสุด:</span>
+            <span id="lastUpdatedTime" class="text-xs font-mono font-bold text-blue-300">--:--:--</span>
+        </div>
+
+        <!-- Manual Refresh Button -->
+        <div class="mt-3 mb-3">
+            <button onclick="manualRefreshPrices()" id="btnRefreshPrices" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-xl font-medium text-sm shadow-lg hover:from-blue-700 hover:to-blue-800 active:scale-95 transition-all">
+                <div class="flex items-center justify-center gap-2">
+                    <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                    <span id="refreshText">Refresh Prices</span>
+                    <span id="refreshTimer" class="text-xs opacity-75"></span>
+                </div>
+                <div id="apiUsageDisplay" class="text-[10px] opacity-75 mt-1">
+                    Loading usage...
+                </div>
+            </button>
+        </div>
+
         <!-- Price Alert Button -->
         <div class="mt-3">
             <button onclick="openPriceAlertModal()" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white py-2.5 px-4 rounded-xl font-medium text-sm shadow-lg transition-all flex items-center justify-center gap-2">
@@ -420,31 +441,10 @@
         </div>
 
         <!-- Thai Stock Indices Button -->
-        <div class="mt-3">
+        <div class="mt-3 mb-3">
             <button onclick="openThaiIndicesModal()" class="w-full bg-gradient-to-r from-red-600 to-blue-600 hover:opacity-90 text-white py-2.5 px-4 rounded-xl font-medium text-sm shadow-lg transition-all flex items-center justify-center gap-2">
                 <span>🇹🇭</span>
                 <span>Thai Stock Indices</span>
-            </button>
-        </div>
-
-        <!-- Last Updated Indicator -->
-        <div class="flex items-center justify-center gap-2 mt-3 mb-1">
-            <span class="live-dot"></span>
-            <span class="text-xs text-slate-400">อัปเดตล่าสุด:</span>
-            <span id="lastUpdatedTime" class="text-xs font-mono font-bold text-blue-300">--:--:--</span>
-        </div>
-
-        <!-- Manual Refresh Button -->
-        <div class="mt-3 mb-3">
-            <button onclick="manualRefreshPrices()" id="btnRefreshPrices" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-xl font-medium text-sm shadow-lg hover:from-blue-700 hover:to-blue-800 active:scale-95 transition-all">
-                <div class="flex items-center justify-center gap-2">
-                    <i class="fas fa-sync-alt" id="refreshIcon"></i>
-                    <span id="refreshText">Refresh Prices</span>
-                    <span id="refreshTimer" class="text-xs opacity-75"></span>
-                </div>
-                <div id="apiUsageDisplay" class="text-[10px] opacity-75 mt-1">
-                    Loading usage...
-                </div>
             </button>
         </div>
 
