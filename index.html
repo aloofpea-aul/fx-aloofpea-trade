@@ -35,6 +35,10 @@
         }
     </script>
     <style>
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
         body {
             background-color: #0f172a;
             color: #e2e8f0;
@@ -282,6 +286,31 @@
         .animate-shake {
             animation: shake 0.3s ease-in-out;
         }
+
+        .live-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 0 rgba(74, 222, 128, 0.6);
+            animation: livePulse 1.6s ease-out infinite;
+        }
+
+        @keyframes livePulse {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6); }
+            70% { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+
+        /* ===== อ่านง่ายขึ้นสำหรับผู้มีสายตายาว: ขยายตัวอักษรเล็กทั้งแอปให้ใหญ่ขึ้น ===== */
+        .text-\[8px\]  { font-size: 12px !important; }
+        .text-\[9px\]  { font-size: 13px !important; }
+        .text-\[10px\] { font-size: 14px !important; }
+        .text-\[11px\] { font-size: 15px !important; }
+        .text-xxs      { font-size: 14px !important; }
+        .text-xs       { font-size: 15px !important; line-height: 1.5 !important; }
+        .text-sm       { font-size: 16px !important; line-height: 1.5 !important; }
     </style>
 </head>
 <body>
@@ -337,6 +366,66 @@
             </div>
         </div>
 
+        <!-- Technical Indicators (MA50/MA200/RSI) -->
+        <div class="glass-card p-3 border border-slate-700">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-300"><i class="fas fa-chart-line text-blue-400 mr-1"></i>Technical (1D)</span>
+                <button onclick="loadTechnicalIndicators()" class="text-[10px] text-slate-500 hover:text-blue-400"><i class="fas fa-sync-alt"></i></button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div id="techGold" class="text-[11px] text-slate-500">GOLD: กำลังโหลด...</div>
+                <div id="techBtc" class="text-[11px] text-slate-500">BTC: กำลังโหลด...</div>
+            </div>
+        </div>
+
+        <!-- Price Alert Button -->
+        <div class="mt-3">
+            <button onclick="openPriceAlertModal()" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white py-2.5 px-4 rounded-xl font-medium text-sm shadow-lg transition-all flex items-center justify-center gap-2">
+                <i class="fas fa-bell"></i>
+                <span>Price Alerts</span>
+                <span id="alertCountBadge" class="hidden bg-white/20 px-2 py-0.5 rounded-full text-xs"></span>
+            </button>
+        </div>
+
+        <!-- COT Report Button -->
+        <div class="mt-3">
+            <button onclick="openCOTModal()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2.5 px-4 rounded-xl font-medium text-sm shadow-lg transition-all flex items-center justify-center gap-2">
+                <i class="fas fa-university"></i>
+                <span>COT Report (สถาบันใหญ่)</span>
+            </button>
+        </div>
+
+        <!-- Seasonality Button -->
+        <div class="mt-3">
+            <button onclick="openSeasonalityModal()" class="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white py-2.5 px-4 rounded-xl font-medium text-sm shadow-lg transition-all flex items-center justify-center gap-2">
+                <i class="fas fa-calendar-week"></i>
+                <span>Seasonality (ฤดูกาล)</span>
+            </button>
+        </div>
+
+        <!-- Confluence Score Button -->
+        <div class="mt-3">
+            <button onclick="openScoreModal()" class="w-full bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:opacity-90 text-white py-3 px-4 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2">
+                <i class="fas fa-layer-group"></i>
+                <span>สรุปคะแนนรวม (Confluence Score)</span>
+            </button>
+        </div>
+
+        <!-- Price Action Button -->
+        <div class="mt-3">
+            <button onclick="openPriceActionModal()" class="w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white py-2.5 px-4 rounded-xl font-medium text-sm shadow-lg transition-all flex items-center justify-center gap-2">
+                <i class="fas fa-chart-bar"></i>
+                <span>Price Action Patterns</span>
+            </button>
+        </div>
+
+        <!-- Last Updated Indicator -->
+        <div class="flex items-center justify-center gap-2 mt-3 mb-1">
+            <span class="live-dot"></span>
+            <span class="text-xs text-slate-400">อัปเดตล่าสุด:</span>
+            <span id="lastUpdatedTime" class="text-xs font-mono font-bold text-blue-300">--:--:--</span>
+        </div>
+
         <!-- Manual Refresh Button -->
         <div class="mt-3 mb-3">
             <button onclick="manualRefreshPrices()" id="btnRefreshPrices" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-xl font-medium text-sm shadow-lg hover:from-blue-700 hover:to-blue-800 active:scale-95 transition-all">
@@ -363,12 +452,10 @@
         <!-- Economic Calendar & Forex Buttons -->
         <div class="grid grid-cols-2 gap-3 mb-3">
             <!-- Economic Calendar Button -->
-            <a href="https://th.investing.com/economic-calendar" target="_blank" class="block">
-                <button class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white py-2.5 px-3 rounded-lg font-medium text-xs shadow-lg transition-all flex items-center justify-center gap-2">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Economic Calendar</span>
-                </button>
-            </a>
+            <button onclick="openEconomicCalendarModal()" class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white py-2.5 px-3 rounded-lg font-medium text-xs shadow-lg transition-all flex items-center justify-center gap-2">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Economic Calendar</span>
+            </button>
 
             <!-- Forex Button -->
             <a href="https://finviz.com/forex.ashx" target="_blank" class="block">
@@ -423,9 +510,19 @@
                 </div>
             </div>
             
-            <button onclick="openWithdrawalModal()" class="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white py-2.5 rounded-lg font-medium text-sm shadow-lg transition-all flex items-center justify-center gap-2">
-                <i class="fas fa-money-bill-wave"></i>
-                <span>Withdraw Funds</span>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <button onclick="openDepositModal()" class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white py-2.5 rounded-lg font-medium text-sm shadow-lg transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Deposit</span>
+                </button>
+                <button onclick="openWithdrawalModal()" class="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white py-2.5 rounded-lg font-medium text-sm shadow-lg transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Withdraw</span>
+                </button>
+            </div>
+            <button onclick="openFundHistoryModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg font-medium text-xs border border-slate-700 transition-all flex items-center justify-center gap-2">
+                <i class="fas fa-receipt"></i>
+                <span>ประวัติการฝาก-ถอน</span>
             </button>
         </div>
 
@@ -720,10 +817,6 @@
         </div>
     </div>
 
-    <button class="api-stats-toggle" onclick="toggleAPIStats()">
-        📊 Stats
-    </button>
-
     <!-- Footer - Version & Copyright -->
     <footer class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-4 py-2 z-30">
         <div class="max-w-xl mx-auto flex justify-between items-center text-xs text-slate-500">
@@ -874,6 +967,21 @@
             </div>
 
             <div class="mb-4">
+                <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2 block">
+                    <i class="fas fa-balance-scale mr-1"></i>Gold Price Calibration
+                </label>
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <label class="text-[10px] text-slate-500">ส่วนต่างราคาทอง (Offset)</label>
+                    <div class="flex gap-2 mt-1">
+                        <input type="number" id="settingGoldOffset" inputmode="decimal" step="any" placeholder="0.00" class="flex-1 bg-slate-800 text-white p-2 rounded border border-slate-600 numpad-input">
+                        <button onclick="saveGoldOffsetSetting()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 rounded text-sm font-medium">บันทึก</button>
+                    </div>
+                    <p class="text-[9px] text-slate-500 mt-1">ราคาที่แสดง = ราคาตลาด (Yahoo) − ค่านี้ เพื่อให้ใกล้เคียงราคาโบรคเกอร์ของคุณ</p>
+                    <div id="goldOffsetStatus" class="text-[10px] text-green-400 mt-1"></div>
+                </div>
+            </div>
+
+            <div class="mb-4">
                 <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2 block">Profit Goals ($)</label>
                 <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700 space-y-3">
                     <div>
@@ -902,19 +1010,31 @@
                         </div>
                         <div class="flex-1">
                             <h4 class="text-sm font-bold text-yellow-400 mb-1">Metals.Dev API</h4>
-                            <p class="text-[10px] text-slate-400 leading-relaxed">Real-time precious metals prices with 500 free calls/month</p>
+                            <p id="apiProviderDesc" class="text-[10px] text-slate-400 leading-relaxed">Real-time precious metals prices</p>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-2 gap-2 mb-3">
                         <div class="bg-slate-900/50 p-2 rounded-lg border border-slate-700">
                             <div class="text-[9px] text-slate-500 mb-0.5">Current Plan</div>
-                            <div class="text-xs font-bold text-green-400">Free (500/mo)</div>
+                            <div id="apiCurrentPlan" class="text-xs font-bold text-green-400">Loading...</div>
                         </div>
                         <div class="bg-slate-900/50 p-2 rounded-lg border border-slate-700">
                             <div class="text-[9px] text-slate-500 mb-0.5">Cache</div>
                             <div class="text-xs font-bold text-blue-400">10 minutes</div>
                         </div>
+                    </div>
+
+                    <!-- Usage Counter -->
+                    <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700 mb-3">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <span class="text-[10px] text-slate-500">Used this month</span>
+                            <span id="apiUsageCount" class="text-xs font-bold text-white">-- / --</span>
+                        </div>
+                        <div class="quota-bar">
+                            <div id="apiUsageBarFill" class="quota-bar-fill" style="width: 0%"></div>
+                        </div>
+                        <div id="apiUsagePercent" class="text-[9px] text-slate-500 mt-1 text-right">0%</div>
                     </div>
                     
                     <div class="flex flex-col gap-2">
@@ -960,6 +1080,17 @@
                         <input type="number" id="settingProfitAlert" inputmode="decimal" step="any" placeholder="100" class="w-full bg-slate-800 text-white p-2 rounded border border-slate-600 numpad-input">
                         <p class="text-[9px] text-slate-500 mt-1">Get notified when profit reaches this amount</p>
                     </div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2 block">
+                    <i class="fas fa-qrcode mr-1"></i>PromptPay
+                </label>
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <label class="text-[10px] text-slate-500">เบอร์พร้อมเพย์ หรือ เลขบัตรประชาชน</label>
+                    <input type="text" id="settingPromptPayId" placeholder="0812345678" class="w-full bg-slate-800 text-white p-2 rounded border border-slate-600 text-sm font-mono">
+                    <p class="text-[9px] text-slate-500 mt-1">ใช้สร้าง QR Code สำหรับหน้าฝากเงิน</p>
                 </div>
             </div>
 
@@ -1021,11 +1152,24 @@
             </div>
 
             <!-- Quick Amount Buttons -->
-            <div class="grid grid-cols-4 gap-2 mb-6">
+            <div class="grid grid-cols-4 gap-2 mb-4">
                 <button onclick="setWithdrawalAmount(50)" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-xs font-medium">$50</button>
                 <button onclick="setWithdrawalAmount(100)" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-xs font-medium">$100</button>
                 <button onclick="setWithdrawalAmount(250)" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-xs font-medium">$250</button>
                 <button onclick="setWithdrawalAmount(500)" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-xs font-medium">$500</button>
+            </div>
+
+            <!-- Bank App Shortcuts -->
+            <div class="mb-6">
+                <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2 block">เปิดแอปธนาคาร/วอลเลตเพื่อโอนเงิน</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="openBankApp('kplus')" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-[11px] font-medium">K PLUS</button>
+                    <button onclick="openBankApp('scb')" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-[11px] font-medium">SCB Easy</button>
+                    <button onclick="openBankApp('ktb')" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-[11px] font-medium">Krungthai NEXT</button>
+                    <button onclick="openBankApp('bbl')" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-[11px] font-medium">Bangkok Bank</button>
+                    <button onclick="openBankApp('truemoney')" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-[11px] font-medium">TrueMoney</button>
+                </div>
+                <p class="text-[9px] text-slate-500 mt-1.5">กดแล้วจะเปิดหน้าแอปในสโตร์ ถ้าติดตั้งไว้แล้วเครื่องจะเสนอเปิดแอปให้เอง</p>
             </div>
 
             <!-- Withdrawal Method -->
@@ -1062,6 +1206,320 @@
                 <button onclick="processWithdrawal()" class="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white py-3 rounded-xl font-bold shadow-lg">
                     Withdraw
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div id="depositModal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeDepositModal()"></div>
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 relative z-10 border border-slate-700 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-white">
+                    <i class="fas fa-plus-circle mr-2 text-blue-400"></i>Deposit Funds
+                </h3>
+                <button onclick="closeDepositModal()" class="text-slate-400 w-8 h-8 flex items-center justify-center hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Current Balance -->
+            <div class="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border border-blue-700/30 rounded-xl p-4 mb-6">
+                <div class="text-xs text-blue-400 mb-1 uppercase font-bold tracking-wider">Current Balance</div>
+                <div id="depositCurrentBalance" class="text-3xl font-bold text-white">$0.00</div>
+            </div>
+
+            <!-- Deposit Amount -->
+            <div class="mb-4">
+                <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2 block">Deposit Amount</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-lg">$</span>
+                    <input type="number" id="depositAmount" inputmode="decimal" step="any" placeholder="0.00" class="w-full bg-slate-900 text-white pl-8 pr-4 py-3 rounded-xl border border-slate-600 text-xl font-mono numpad-input focus:border-blue-500 focus:outline-none">
+                </div>
+            </div>
+
+            <!-- Quick Amount Buttons -->
+            <div class="grid grid-cols-4 gap-2 mb-4">
+                <button onclick="setDepositAmount(50)" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-xs font-medium">$50</button>
+                <button onclick="setDepositAmount(100)" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-xs font-medium">$100</button>
+                <button onclick="setDepositAmount(250)" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-xs font-medium">$250</button>
+                <button onclick="setDepositAmount(500)" class="bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-xs font-medium">$500</button>
+            </div>
+
+            <!-- Generate PromptPay QR -->
+            <div class="mb-6">
+                <button onclick="generateDepositQR()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 border border-slate-600">
+                    <i class="fas fa-qrcode"></i>
+                    <span>สร้าง QR PromptPay สำหรับจำนวนนี้</span>
+                </button>
+                <div id="depositQRArea" class="hidden mt-3 bg-white rounded-xl p-4 text-center">
+                    <img id="depositQRImage" src="" alt="PromptPay QR" class="mx-auto rounded-lg" style="max-width:220px;">
+                    <p class="text-slate-800 text-xs font-bold mt-2">สแกนด้วยแอปธนาคารเพื่อโอนเงิน</p>
+                </div>
+                <div id="depositQRError" class="hidden mt-2 text-xs text-red-400 text-center"></div>
+            </div>
+
+            <!-- Deposit Method -->
+            <div class="mb-6">
+                <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2 block">Deposit Method</label>
+                <select id="depositMethod" class="w-full bg-slate-900 text-white p-3 rounded-xl border border-slate-600">
+                    <option value="bank">Bank Transfer</option>
+                    <option value="wallet">E-Wallet</option>
+                    <option value="crypto">Cryptocurrency</option>
+                </select>
+            </div>
+
+            <!-- Note -->
+            <div class="mb-6">
+                <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2 block">Note (Optional)</label>
+                <textarea id="depositNote" rows="2" placeholder="Add a note..." class="w-full bg-slate-900 text-white p-3 rounded-xl border border-slate-600 text-sm resize-none"></textarea>
+            </div>
+
+            <!-- Info -->
+            <div class="bg-blue-900/20 border border-blue-700/30 rounded-lg p-3 mb-6">
+                <div class="flex gap-2 items-start">
+                    <i class="fas fa-info-circle text-blue-400 text-sm mt-0.5"></i>
+                    <div class="text-xs text-blue-200">
+                        สแกน QR แล้วโอนเงินด้วยแอปธนาคารของคุณเอง จากนั้นกด "Deposit" เพื่อบันทึกรายการนี้ลงประวัติ
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3">
+                <button onclick="closeDepositModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold">
+                    Cancel
+                </button>
+                <button onclick="processDeposit()" class="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white py-3 rounded-xl font-bold shadow-lg">
+                    Deposit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fund Transaction History Modal -->
+    <div id="fundHistoryModal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeFundHistoryModal()"></div>
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 relative z-10 border border-slate-700 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-white">
+                    <i class="fas fa-receipt mr-2 text-blue-400"></i>ประวัติการฝาก-ถอน
+                </h3>
+                <button onclick="closeFundHistoryModal()" class="text-slate-400 w-8 h-8 flex items-center justify-center hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="fundHistoryList" class="space-y-2">
+                <div class="text-center py-10 text-slate-500 text-sm">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังโหลด...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Price Alert Modal -->
+    <div id="priceAlertModal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePriceAlertModal()"></div>
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 relative z-10 border border-slate-700 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-white">
+                    <i class="fas fa-bell mr-2 text-amber-400"></i>Price Alerts
+                </h3>
+                <button onclick="closePriceAlertModal()" class="text-slate-400 w-8 h-8 flex items-center justify-center hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- New Alert Form -->
+            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 mb-5">
+                <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2 block">ตั้งแจ้งเตือนใหม่</label>
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <select id="alertAsset" onchange="fillAlertCurrentPrice()" class="bg-slate-800 text-white p-2 rounded border border-slate-600 text-sm">
+                        <option value="GOLD">ทองคำ (XAU/USD)</option>
+                        <option value="BTC">Bitcoin (BTC/USD)</option>
+                        <option value="JPY">USD/JPY</option>
+                        <option value="EUR">EUR/USD</option>
+                    </select>
+                    <select id="alertDirection" class="bg-slate-800 text-white p-2 rounded border border-slate-600 text-sm">
+                        <option value="above">ทะลุขึ้นเหนือ ▲</option>
+                        <option value="below">ทะลุลงต่ำกว่า ▼</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <input type="number" id="alertTargetPrice" inputmode="decimal" step="any" placeholder="ราคาเป้าหมาย" class="flex-1 bg-slate-800 text-white p-2 rounded border border-slate-600 text-sm numpad-input">
+                    <button onclick="addPriceAlertUI()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 rounded text-sm font-bold">เพิ่ม</button>
+                </div>
+                <div id="alertSavedToast" class="hidden mt-2 bg-green-900/30 border border-green-700/40 text-green-400 text-xs rounded-lg px-3 py-2 flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span>บันทึกเรียบร้อยแล้ว</span>
+                </div>
+                <p class="text-[9px] text-slate-500 mt-2">ระบบเช็คทุก 5 นาที เมื่อถึงเป้าหมายจะแจ้งเตือนทาง LINE ทันที และปิดการแจ้งเตือนนั้นอัตโนมัติ</p>
+            </div>
+
+            <div id="priceAlertList" class="space-y-2">
+                <div class="text-center py-10 text-slate-500 text-sm">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังโหลด...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Economic Calendar Modal -->
+    <div id="economicCalendarModal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeEconomicCalendarModal()"></div>
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 relative z-10 border border-slate-700 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-white">
+                    <i class="fas fa-calendar-alt mr-2 text-blue-400"></i>ปฏิทินเศรษฐกิจ
+                </h3>
+                <button onclick="closeEconomicCalendarModal()" class="text-slate-400 w-8 h-8 flex items-center justify-center hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="flex gap-2 mb-4">
+                <button onclick="loadEconomicCalendar('High')" id="calFilterHigh" class="cal-filter-btn flex-1 bg-red-600 text-white py-2 rounded-lg text-xs font-bold">🔴 High เท่านั้น</button>
+                <button onclick="loadEconomicCalendar('HighMedium')" id="calFilterHighMedium" class="cal-filter-btn flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-bold">High + Medium</button>
+            </div>
+
+            <div id="economicCalendarList" class="space-y-2">
+                <div class="text-center py-10 text-slate-500 text-sm">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังโหลด...
+                </div>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-slate-700">
+                <a href="https://th.investing.com/economic-calendar" target="_blank" class="block text-center text-xs text-blue-400 hover:text-blue-300">
+                    <i class="fas fa-external-link-alt mr-1"></i>ดูปฏิทินแบบเต็มที่ Investing.com
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- COT Report Modal -->
+    <div id="cotModal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeCOTModal()"></div>
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 relative z-10 border border-slate-700 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-white">
+                    <i class="fas fa-university mr-2 text-indigo-400"></i>COT Report
+                </h3>
+                <button onclick="closeCOTModal()" class="text-slate-400 w-8 h-8 flex items-center justify-center hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="bg-indigo-900/20 border border-indigo-700/30 rounded-lg p-3 mb-4">
+                <p class="text-xs text-indigo-200 leading-relaxed">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    แสดงสถานะการถือครองของ <strong>สถาบันใหญ่ (Non-Commercial)</strong> เทียบกับ <strong>ผู้ป้องกันความเสี่ยง (Commercial)</strong> จาก CFTC สหรัฐฯ อัปเดตทุกวันศุกร์
+                </p>
+            </div>
+
+            <div id="cotList" class="space-y-3">
+                <div class="text-center py-10 text-slate-500 text-sm">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังโหลด...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seasonality Modal -->
+    <div id="seasonalityModal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeSeasonalityModal()"></div>
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 relative z-10 border border-slate-700 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-white">
+                    <i class="fas fa-calendar-week mr-2 text-teal-400"></i>Seasonality
+                </h3>
+                <button onclick="closeSeasonalityModal()" class="text-slate-400 w-8 h-8 flex items-center justify-center hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="flex gap-2 mb-4">
+                <button onclick="loadSeasonality('GOLD')" id="seasAssetGold" class="flex-1 bg-yellow-600 text-white py-2 rounded-lg text-xs font-bold">🥇 Gold</button>
+                <button onclick="loadSeasonality('BTC')" id="seasAssetBtc" class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-bold">₿ Bitcoin</button>
+            </div>
+
+            <div class="bg-teal-900/20 border border-teal-700/30 rounded-lg p-3 mb-4">
+                <p class="text-xs text-teal-200 leading-relaxed">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    ค่าเฉลี่ยผลตอบแทนของแต่ละเดือนในอดีต ใช้ดูรูปแบบตามฤดูกาล — <strong>ไม่ใช่การพยากรณ์อนาคต</strong> อดีตไม่รับประกันผลลัพธ์ที่จะเกิดขึ้นซ้ำ
+                </p>
+            </div>
+
+            <div id="seasonalityContent">
+                <div class="text-center py-10 text-slate-500 text-sm">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังโหลด...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confluence Score Modal -->
+    <div id="scoreModal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeScoreModal()"></div>
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 relative z-10 border border-slate-700 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-white">
+                    <i class="fas fa-layer-group mr-2 text-fuchsia-400"></i>สรุปคะแนนรวม
+                </h3>
+                <button onclick="closeScoreModal()" class="text-slate-400 w-8 h-8 flex items-center justify-center hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="flex gap-2 mb-4">
+                <button onclick="loadScore('GOLD')" id="scoreAssetGold" class="flex-1 bg-yellow-600 text-white py-2 rounded-lg text-xs font-bold">🥇 Gold</button>
+                <button onclick="loadScore('BTC')" id="scoreAssetBtc" class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-bold">₿ Bitcoin</button>
+            </div>
+
+            <div class="bg-fuchsia-900/20 border border-fuchsia-700/30 rounded-lg p-3 mb-4">
+                <p class="text-xs text-fuchsia-200 leading-relaxed">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    รวมคะแนนจาก Technical + COT + Seasonality เป็นสูตรที่ออกแบบเอง <strong>ไม่ใช่สัญญาณซื้อ-ขายที่แม่นยำ</strong> ใช้เป็นข้อมูลประกอบการตัดสินใจเท่านั้น
+                </p>
+            </div>
+
+            <div id="scoreContent">
+                <div class="text-center py-10 text-slate-500 text-sm">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังคำนวณ (รวมหลายแหล่งข้อมูล อาจใช้เวลาสักครู่)...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Price Action Modal -->
+    <div id="priceActionModal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePriceActionModal()"></div>
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 relative z-10 border border-slate-700 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-white">
+                    <i class="fas fa-chart-bar mr-2 text-rose-400"></i>Price Action Patterns
+                </h3>
+                <button onclick="closePriceActionModal()" class="text-slate-400 w-8 h-8 flex items-center justify-center hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="flex gap-2 mb-4">
+                <button onclick="loadPriceAction('GOLD')" id="paAssetGold" class="flex-1 bg-yellow-600 text-white py-2 rounded-lg text-xs font-bold">🥇 Gold</button>
+                <button onclick="loadPriceAction('BTC')" id="paAssetBtc" class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-bold">₿ Bitcoin</button>
+            </div>
+
+            <div class="bg-rose-900/20 border border-rose-700/30 rounded-lg p-3 mb-4">
+                <p class="text-xs text-rose-200 leading-relaxed">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    ตรวจจับด้วยสูตรคณิตศาสตร์จากแท่งเทียนรายวันจริง (Open/High/Low/Close) <strong>ไม่ใช่ AI มองภาพ</strong> — แม่นยำกว่าและไม่มีต้นทุนต่อครั้ง
+                </p>
+            </div>
+
+            <div id="priceActionContent">
+                <div class="text-center py-10 text-slate-500 text-sm">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังโหลด...
+                </div>
             </div>
         </div>
     </div>
@@ -1138,7 +1596,7 @@
                 </div>
 
                 <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700">
-                    <div id="analysisContent" class="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap"></div>
+                    <div id="analysisContent" class="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap break-words"></div>
                 </div>
 
                 <div class="mt-4 text-xs text-slate-500 text-center">
@@ -1358,7 +1816,6 @@
         };
         let priceChart = null;
         let lastRefreshTime = 0;
-        let refreshCooldown = 60000; // 1 minute cooldown
         
         // ตัวแปรสำหรับ Edit Mode
         let isEditMode = false;
@@ -1409,70 +1866,697 @@
             return isValid;
         }
 
+        // ===================================
+        // PRICE ALERT FUNCTIONS
+        // ===================================
+
+        function openPriceAlertModal() {
+            const modal = $('priceAlertModal');
+            if (!modal) return;
+
+            const assetEl = $('alertAsset');
+            if (assetEl) assetEl.value = 'GOLD';
+
+            modal.classList.remove('hidden');
+            loadPriceAlerts();
+            fillAlertCurrentPrice();
+        }
+
+        function fillAlertCurrentPrice() {
+            const assetEl = $('alertAsset');
+            const targetEl = $('alertTargetPrice');
+            if (!assetEl || !targetEl) return;
+
+            const asset = assetEl.value;
+
+            if (asset === 'GOLD') {
+                targetEl.value = currentPrices.gold ? currentPrices.gold.toFixed(2) : '';
+            } else if (asset === 'BTC') {
+                targetEl.value = currentPrices.btc ? currentPrices.btc.toFixed(2) : '';
+            } else if (asset === 'JPY' || asset === 'EUR') {
+                targetEl.value = 'กำลังโหลด...';
+                if (typeof google !== 'undefined' && google.script) {
+                    google.script.run
+                        .withSuccessHandler(function(forex) {
+                            // เช็คว่ายังเลือก asset เดิมอยู่ไหม เผื่อผู้ใช้สลับไปแล้วระหว่างรอโหลด
+                            if (assetEl.value !== asset) return;
+                            if (asset === 'JPY') targetEl.value = forex.usdjpy ? forex.usdjpy.toFixed(2) : '';
+                            if (asset === 'EUR') targetEl.value = forex.eurusd ? forex.eurusd.toFixed(4) : '';
+                        })
+                        .withFailureHandler(function(error) {
+                            console.error('❌ Fetch forex for alert error:', error);
+                            targetEl.value = '';
+                        })
+                        .getForexRates();
+                }
+            }
+        }
+
+        function closePriceAlertModal() {
+            const modal = $('priceAlertModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function addPriceAlertUI() {
+            const assetEl = $('alertAsset');
+            const directionEl = $('alertDirection');
+            const targetEl = $('alertTargetPrice');
+
+            const asset = assetEl.value;
+            const direction = directionEl.value;
+            const target = parseFloat(targetEl.value);
+
+            if (!target || target <= 0) {
+                alert('⚠️ กรุณากรอกราคาเป้าหมายให้ถูกต้อง');
+                return;
+            }
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        fillAlertCurrentPrice();
+                        loadPriceAlerts();
+                        showAlertSavedToast();
+                    } else {
+                        alert('❌ ตั้งแจ้งเตือนไม่สำเร็จ: ' + (result.error || 'Unknown error'));
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error('❌ Add alert error:', error);
+                    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+                })
+                .addPriceAlert(asset, direction, target);
+        }
+
+        function showAlertSavedToast() {
+            const toast = $('alertSavedToast');
+            if (!toast) return;
+            toast.classList.remove('hidden');
+            setTimeout(function() {
+                toast.classList.add('hidden');
+            }, 2000);
+        }
+
+        function deletePriceAlertUI(id) {
+            if (!confirm('ลบการแจ้งเตือนนี้?')) return;
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        loadPriceAlerts();
+                    } else {
+                        alert('❌ ลบไม่สำเร็จ: ' + (result.error || 'Unknown error'));
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error('❌ Delete alert error:', error);
+                })
+                .deletePriceAlert(id);
+        }
+
+        function loadPriceAlerts() {
+            const listEl = $('priceAlertList');
+            if (!listEl) return;
+
+            google.script.run
+                .withSuccessHandler(function(alerts) {
+                    renderPriceAlerts(alerts);
+                    const activeCount = alerts.filter(a => a.status === 'active').length;
+                    const badge = $('alertCountBadge');
+                    if (badge) {
+                        if (activeCount > 0) {
+                            badge.innerText = activeCount;
+                            badge.classList.remove('hidden');
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error('❌ Load alerts error:', error);
+                    listEl.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">โหลดข้อมูลไม่สำเร็จ</div>';
+                })
+                .getPriceAlerts();
+        }
+
+        function renderPriceAlerts(alerts) {
+            const listEl = $('priceAlertList');
+            if (!listEl) return;
+
+            if (!alerts || alerts.length === 0) {
+                listEl.innerHTML = '<div class="text-center py-10 text-slate-500 text-sm"><i class="fas fa-bell-slash text-2xl mb-2 opacity-30"></i><br>ยังไม่มีการแจ้งเตือน</div>';
+                return;
+            }
+
+            const assetNames = { GOLD: 'ทองคำ', BTC: 'Bitcoin', JPY: 'USD/JPY', EUR: 'EUR/USD' };
+            const decimals = { GOLD: 2, BTC: 2, JPY: 2, EUR: 4 };
+
+            let html = '';
+            alerts.forEach(function(a) {
+                const isActive = a.status === 'active';
+                const dirText = a.direction === 'above' ? 'ทะลุขึ้นเหนือ ▲' : 'ทะลุลงต่ำกว่า ▼';
+                const dp = decimals[a.asset] || 2;
+                html += '<div class="glass-card p-3 border ' + (isActive ? 'border-amber-700/50' : 'border-slate-800') + '">' +
+                    '<div class="flex justify-between items-center">' +
+                        '<div>' +
+                            '<div class="font-bold text-sm text-slate-200">' + (assetNames[a.asset] || a.asset) + '</div>' +
+                            '<div class="text-xs text-slate-400">' + dirText + ' ' + a.targetPrice.toFixed(dp) + '</div>' +
+                            '<div class="text-[10px] ' + (isActive ? 'text-amber-400' : 'text-slate-500') + ' mt-1">' +
+                                (isActive ? '🔔 กำลังติดตาม' : '✅ แจ้งเตือนแล้ว') +
+                            '</div>' +
+                        '</div>' +
+                        '<button onclick="deletePriceAlertUI(\'' + a.id + '\')" class="text-slate-500 hover:text-red-400 w-8 h-8 flex items-center justify-center">' +
+                            '<i class="fas fa-trash-alt"></i>' +
+                        '</button>' +
+                    '</div>' +
+                '</div>';
+            });
+
+            listEl.innerHTML = html;
+        }
+
+        // ===================================
+        // ECONOMIC CALENDAR FUNCTIONS
+        // ===================================
+
+        let currentCalFilter = 'High';
+
+        function openEconomicCalendarModal() {
+            const modal = $('economicCalendarModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            loadEconomicCalendar('High');
+        }
+
+        function closeEconomicCalendarModal() {
+            const modal = $('economicCalendarModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function loadEconomicCalendar(filter) {
+            currentCalFilter = filter;
+
+            const highBtn = $('calFilterHigh');
+            const hmBtn = $('calFilterHighMedium');
+            if (highBtn) highBtn.className = 'cal-filter-btn flex-1 py-2 rounded-lg text-xs font-bold ' + (filter === 'High' ? 'bg-red-600 text-white' : 'bg-slate-700 text-white');
+            if (hmBtn) hmBtn.className = 'cal-filter-btn flex-1 py-2 rounded-lg text-xs font-bold ' + (filter === 'HighMedium' ? 'bg-orange-600 text-white' : 'bg-slate-700 text-white');
+
+            const listEl = $('economicCalendarList');
+            if (listEl) {
+                listEl.innerHTML = '<div class="text-center py-10 text-slate-500 text-sm"><i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังโหลด...</div>';
+            }
+
+            if (typeof google === 'undefined' || !google.script) return;
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    renderEconomicCalendar(result);
+                })
+                .withFailureHandler(function(error) {
+                    console.error('❌ Economic calendar error:', error);
+                    if (listEl) listEl.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">โหลดข้อมูลไม่สำเร็จ</div>';
+                })
+                .getEconomicCalendar(filter);
+        }
+
+        function renderEconomicCalendar(result) {
+            const listEl = $('economicCalendarList');
+            if (!listEl) return;
+
+            if (!result || !result.success) {
+                listEl.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">' + (result && result.error ? result.error : 'โหลดข้อมูลไม่สำเร็จ') + '</div>';
+                return;
+            }
+
+            if (!result.events || result.events.length === 0) {
+                listEl.innerHTML = '<div class="text-center py-10 text-slate-500 text-sm"><i class="fas fa-calendar-check text-2xl mb-2 opacity-30"></i><br>ไม่มีข่าวสำคัญสัปดาห์นี้</div>';
+                return;
+            }
+
+            calEventsCache = result.events;
+
+            let html = '';
+            let lastDate = '';
+            result.events.forEach(function(ev, idx) {
+                if (ev.dateThai !== lastDate) {
+                    html += '<div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-3 mb-1 first:mt-0">' + ev.dateThai + '</div>';
+                    lastDate = ev.dateThai;
+                }
+
+                const impactColor = ev.impact === 'High' ? 'bg-red-500/20 text-red-400 border-red-700/30' : (ev.impact === 'Medium' ? 'bg-orange-500/20 text-orange-400 border-orange-700/30' : 'bg-slate-700 text-slate-400 border-slate-600');
+                const opacityClass = ev.isPast ? 'opacity-40' : '';
+
+                html += '<div class="glass-card p-3 border border-slate-800 cursor-pointer hover:border-blue-700/50 transition-all ' + opacityClass + '" onclick="toggleEventDetail(' + idx + ')">' +
+                    '<div class="flex justify-between items-start gap-2">' +
+                        '<div class="flex-1 min-w-0">' +
+                            '<div class="flex items-center gap-2 mb-1">' +
+                                '<span class="text-[9px] px-1.5 py-0.5 rounded border ' + impactColor + ' font-bold">' + ev.impact + '</span>' +
+                                '<span class="text-[10px] text-slate-500 font-mono">' + ev.country + '</span>' +
+                                '<span class="text-[10px] text-slate-500">' + ev.timeThai + ' น.</span>' +
+                            '</div>' +
+                            '<div class="text-sm text-slate-200 font-medium">' + ev.title + ' <i class="fas fa-chevron-down text-[9px] text-slate-600 ml-1" id="calChevron' + idx + '"></i></div>' +
+                            (ev.forecast || ev.previous ? '<div class="text-[10px] text-slate-500 mt-1">' +
+                                (ev.forecast ? 'คาดการณ์: <span class="text-slate-300">' + ev.forecast + '</span> ' : '') +
+                                (ev.previous ? '| ก่อนหน้า: <span class="text-slate-300">' + ev.previous + '</span>' : '') +
+                            '</div>' : '') +
+                        '</div>' +
+                    '</div>' +
+                    '<div id="calDetail' + idx + '" class="hidden mt-2 pt-2 border-t border-slate-700 text-xs text-slate-300 leading-relaxed"></div>' +
+                '</div>';
+            });
+
+            listEl.innerHTML = html;
+        }
+
+        let calEventsCache = [];
+        let calExplainedCache = {};
+
+        function toggleEventDetail(idx) {
+            const detailEl = $('calDetail' + idx);
+            const chevronEl = $('calChevron' + idx);
+            if (!detailEl) return;
+
+            if (!detailEl.classList.contains('hidden')) {
+                detailEl.classList.add('hidden');
+                if (chevronEl) chevronEl.className = 'fas fa-chevron-down text-[9px] text-slate-600 ml-1';
+                return;
+            }
+
+            detailEl.classList.remove('hidden');
+            if (chevronEl) chevronEl.className = 'fas fa-chevron-up text-[9px] text-slate-600 ml-1';
+
+            const ev = calEventsCache[idx];
+            if (!ev) return;
+
+            const cacheKey = ev.title + '_' + ev.country;
+            if (calExplainedCache[cacheKey]) {
+                detailEl.innerHTML = calExplainedCache[cacheKey];
+                return;
+            }
+
+            detailEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>AI กำลังอธิบาย...';
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        const formatted = result.explanation.replace(/\n/g, '<br>');
+                        calExplainedCache[cacheKey] = formatted;
+                        detailEl.innerHTML = formatted;
+                    } else {
+                        detailEl.innerHTML = '<span class="text-red-400">⚠️ ' + (result.error || 'ไม่สามารถอธิบายได้ตอนนี้') + '</span>';
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error('❌ Explain event error:', error);
+                    detailEl.innerHTML = '<span class="text-red-400">⚠️ เกิดข้อผิดพลาด</span>';
+                })
+                .explainEconomicEvent(ev.title, ev.country, ev.impact, ev.forecast, ev.previous);
+        }
+
+        // ===================================
+        // COT REPORT FUNCTIONS
+        // ===================================
+
+        function openCOTModal() {
+            const modal = $('cotModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+
+            const listEl = $('cotList');
+            if (listEl) {
+                listEl.innerHTML = '<div class="text-center py-10 text-slate-500 text-sm"><i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังโหลด...</div>';
+            }
+
+            if (typeof google === 'undefined' || !google.script) return;
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    renderCOTReport(result);
+                })
+                .withFailureHandler(function(error) {
+                    console.error('❌ COT report error:', error);
+                    if (listEl) listEl.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">โหลดข้อมูลไม่สำเร็จ</div>';
+                })
+                .getCOTReport();
+        }
+
+        function closeCOTModal() {
+            const modal = $('cotModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function renderCOTReport(result) {
+            const listEl = $('cotList');
+            if (!listEl) return;
+
+            if (!result || !result.success) {
+                listEl.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">' + (result && result.error ? result.error : 'โหลดข้อมูลไม่สำเร็จ') + '</div>';
+                return;
+            }
+
+            const assetNames = { GOLD: '🥇 ทองคำ (Gold Futures)', EUR: '💶 EUR/USD (Euro FX)', JPY: '💴 USD/JPY (Japanese Yen)' };
+            const assetOrder = ['GOLD', 'EUR', 'JPY'];
+
+            let html = '';
+            assetOrder.forEach(function(key) {
+                const d = result.assets[key];
+                if (!d) {
+                    html += '<div class="glass-card p-3 border border-slate-800 text-slate-500 text-sm">' + assetNames[key] + ': ไม่มีข้อมูล</div>';
+                    return;
+                }
+
+                const netColor = d.noncommNet >= 0 ? 'text-green-400' : 'text-red-400';
+                const netLabel = d.noncommNet >= 0 ? 'Net Long (เก็งกำไรฝั่งซื้อมากกว่า)' : 'Net Short (เก็งกำไรฝั่งขายมากกว่า)';
+                const netIcon = d.noncommNet >= 0 ? '📈' : '📉';
+
+                html += '<div class="glass-card p-4 border border-slate-700">' +
+                    '<div class="flex justify-between items-center mb-3">' +
+                        '<span class="font-bold text-slate-200">' + assetNames[key] + '</span>' +
+                        '<span class="text-[10px] text-slate-500">ข้อมูล ณ ' + d.reportDate + '</span>' +
+                    '</div>' +
+                    '<div class="bg-slate-900/50 rounded-lg p-3 mb-2">' +
+                        '<div class="flex justify-between items-center mb-1">' +
+                            '<span class="text-xs text-slate-400">🏦 สถาบันใหญ่ (Non-Commercial)</span>' +
+                            '<span class="text-xs ' + netColor + ' font-bold">' + netIcon + ' ' + (d.noncommNet >= 0 ? '+' : '') + formatMoney(d.noncommNet).replace('.00','') + '</span>' +
+                        '</div>' +
+                        '<div class="text-[10px] text-slate-500">Long: ' + d.noncommLong.toLocaleString() + ' | Short: ' + d.noncommShort.toLocaleString() + '</div>' +
+                        '<div class="text-[10px] ' + netColor + ' mt-1">' + netLabel + '</div>' +
+                    '</div>' +
+                    '<div class="bg-slate-900/50 rounded-lg p-3">' +
+                        '<div class="flex justify-between items-center mb-1">' +
+                            '<span class="text-xs text-slate-400">🛡️ ผู้ป้องกันความเสี่ยง (Commercial)</span>' +
+                            '<span class="text-xs ' + (d.commNet >= 0 ? 'text-green-400' : 'text-red-400') + ' font-bold">' + (d.commNet >= 0 ? '+' : '') + formatMoney(d.commNet).replace('.00','') + '</span>' +
+                        '</div>' +
+                        '<div class="text-[10px] text-slate-500">Long: ' + d.commLong.toLocaleString() + ' | Short: ' + d.commShort.toLocaleString() + '</div>' +
+                    '</div>' +
+                    '<div class="text-[10px] text-slate-500 mt-2 text-right">Open Interest: ' + d.openInterest.toLocaleString() + '</div>' +
+                '</div>';
+            });
+
+            listEl.innerHTML = html;
+        }
+
+        // ===================================
+        // SEASONALITY FUNCTIONS
+        // ===================================
+
+        let currentSeasAsset = 'GOLD';
+
+        function openSeasonalityModal() {
+            const modal = $('seasonalityModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            loadSeasonality('GOLD');
+        }
+
+        function closeSeasonalityModal() {
+            const modal = $('seasonalityModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function loadSeasonality(asset) {
+            currentSeasAsset = asset;
+
+            const goldBtn = $('seasAssetGold');
+            const btcBtn = $('seasAssetBtc');
+            if (goldBtn) goldBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold ' + (asset === 'GOLD' ? 'bg-yellow-600 text-white' : 'bg-slate-700 text-white');
+            if (btcBtn) btcBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold ' + (asset === 'BTC' ? 'bg-orange-600 text-white' : 'bg-slate-700 text-white');
+
+            const contentEl = $('seasonalityContent');
+            if (contentEl) {
+                contentEl.innerHTML = '<div class="text-center py-10 text-slate-500 text-sm"><i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังคำนวณ (อาจใช้เวลาสักครู่)...</div>';
+            }
+
+            if (typeof google === 'undefined' || !google.script) return;
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    renderSeasonality(result);
+                })
+                .withFailureHandler(function(error) {
+                    console.error('❌ Seasonality error:', error);
+                    if (contentEl) contentEl.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">โหลดข้อมูลไม่สำเร็จ</div>';
+                })
+                .getSeasonalityWithChart(asset);
+        }
+
+        function renderSeasonality(result) {
+            const contentEl = $('seasonalityContent');
+            if (!contentEl) return;
+
+            if (!result || !result.success) {
+                contentEl.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">' + (result && result.error ? result.error : 'โหลดข้อมูลไม่สำเร็จ') + '</div>';
+                return;
+            }
+
+            let html = '<img src="' + result.chartUrl + '" class="w-full rounded-xl mb-4" alt="Seasonality Chart">';
+
+            html += '<div class="space-y-1.5">';
+            result.months.forEach(function(m) {
+                const isPositive = m.avgReturn >= 0;
+                html += '<div class="flex items-center justify-between bg-slate-900/50 rounded-lg px-3 py-2">' +
+                    '<span class="text-sm text-slate-300 font-medium w-14">' + m.month + '</span>' +
+                    '<span class="text-sm font-mono font-bold ' + (isPositive ? 'text-green-400' : 'text-red-400') + '">' +
+                        (isPositive ? '+' : '') + m.avgReturn.toFixed(2) + '%' +
+                    '</span>' +
+                    '<span class="text-xs text-slate-500">ชนะ ' + m.winRate + '% (' + m.sampleSize + ' ปี)</span>' +
+                '</div>';
+            });
+            html += '</div>';
+
+            contentEl.innerHTML = html;
+        }
+
+        // ===================================
+        // CONFLUENCE SCORE FUNCTIONS
+        // ===================================
+
+        function openScoreModal() {
+            const modal = $('scoreModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            loadScore('GOLD');
+        }
+
+        function closeScoreModal() {
+            const modal = $('scoreModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function loadScore(asset) {
+            const goldBtn = $('scoreAssetGold');
+            const btcBtn = $('scoreAssetBtc');
+            if (goldBtn) goldBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold ' + (asset === 'GOLD' ? 'bg-yellow-600 text-white' : 'bg-slate-700 text-white');
+            if (btcBtn) btcBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold ' + (asset === 'BTC' ? 'bg-orange-600 text-white' : 'bg-slate-700 text-white');
+
+            const contentEl = $('scoreContent');
+            if (contentEl) {
+                contentEl.innerHTML = '<div class="text-center py-10 text-slate-500 text-sm"><i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังคำนวณ (รวมหลายแหล่งข้อมูล อาจใช้เวลาสักครู่)...</div>';
+            }
+
+            if (typeof google === 'undefined' || !google.script) return;
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    renderScore(result);
+                })
+                .withFailureHandler(function(error) {
+                    console.error('❌ Score error:', error);
+                    if (contentEl) contentEl.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">คำนวณไม่สำเร็จ</div>';
+                })
+                .getConfluenceScore(asset);
+        }
+
+        function renderScore(result) {
+            const contentEl = $('scoreContent');
+            if (!contentEl) return;
+
+            if (!result || !result.success) {
+                contentEl.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">' + (result && result.error ? result.error : 'คำนวณไม่สำเร็จ') + '</div>';
+                return;
+            }
+
+            const colorMap = {
+                green: { bg: 'bg-green-900/30', border: 'border-green-700/50', text: 'text-green-400' },
+                red: { bg: 'bg-red-900/30', border: 'border-red-700/50', text: 'text-red-400' },
+                gray: { bg: 'bg-slate-800', border: 'border-slate-600', text: 'text-slate-300' }
+            };
+            const c = colorMap[result.labelColor] || colorMap.gray;
+
+            let html = '<div class="' + c.bg + ' border ' + c.border + ' rounded-xl p-5 text-center mb-4">' +
+                '<div class="text-4xl font-bold ' + c.text + ' mb-1">' + (result.totalScore >= 0 ? '+' : '') + result.totalScore + ' / ' + result.maxScore + '</div>' +
+                '<div class="text-lg font-bold ' + c.text + '">' + result.label + '</div>' +
+            '</div>';
+
+            html += '<div class="space-y-2 mb-4">';
+            result.components.forEach(function(comp) {
+                const compColor = comp.score > 0 ? 'text-green-400' : (comp.score < 0 ? 'text-red-400' : 'text-slate-400');
+                html += '<div class="glass-card p-3 border border-slate-800 flex justify-between items-center">' +
+                    '<div>' +
+                        '<div class="text-sm text-slate-200 font-medium">' + comp.name + '</div>' +
+                        '<div class="text-[11px] text-slate-500">' + comp.detail + '</div>' +
+                    '</div>' +
+                    '<div class="text-lg font-bold ' + compColor + '">' + (comp.score >= 0 ? '+' : '') + comp.score + '</div>' +
+                '</div>';
+            });
+            html += '</div>';
+
+            if (result.upcomingHighImpactEvents && result.upcomingHighImpactEvents.length > 0) {
+                html += '<div class="bg-red-900/20 border border-red-700/30 rounded-lg p-3">' +
+                    '<div class="text-xs font-bold text-red-400 mb-2"><i class="fas fa-exclamation-triangle mr-1"></i>⚠️ มีข่าวสำคัญใน 48 ชม.ข้างหน้า</div>';
+                result.upcomingHighImpactEvents.forEach(function(e) {
+                    html += '<div class="text-[11px] text-red-200 mb-1">• ' + e.title + ' (' + e.country + ') — ' + e.dateThai + ' ' + e.timeThai + ' น.</div>';
+                });
+                html += '</div>';
+            } else {
+                html += '<div class="bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-center text-[11px] text-slate-500">✅ ไม่มีข่าว High Impact ใน 48 ชม.ข้างหน้า</div>';
+            }
+
+            contentEl.innerHTML = html;
+        }
+
+        // ===================================
+        // PRICE ACTION FUNCTIONS
+        // ===================================
+
+        function openPriceActionModal() {
+            const modal = $('priceActionModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            loadPriceAction('GOLD');
+        }
+
+        function closePriceActionModal() {
+            const modal = $('priceActionModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function loadPriceAction(asset) {
+            const goldBtn = $('paAssetGold');
+            const btcBtn = $('paAssetBtc');
+            if (goldBtn) goldBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold ' + (asset === 'GOLD' ? 'bg-yellow-600 text-white' : 'bg-slate-700 text-white');
+            if (btcBtn) btcBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold ' + (asset === 'BTC' ? 'bg-orange-600 text-white' : 'bg-slate-700 text-white');
+
+            const contentEl = $('priceActionContent');
+            if (contentEl) {
+                contentEl.innerHTML = '<div class="text-center py-10 text-slate-500 text-sm"><i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังโหลด...</div>';
+            }
+
+            if (typeof google === 'undefined' || !google.script) return;
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    renderPriceAction(result);
+                })
+                .withFailureHandler(function(error) {
+                    console.error('❌ Price Action error:', error);
+                    if (contentEl) contentEl.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">โหลดข้อมูลไม่สำเร็จ</div>';
+                })
+                .getPriceActionAnalysis(asset);
+        }
+
+        function renderPriceAction(result) {
+            const contentEl = $('priceActionContent');
+            if (!contentEl) return;
+
+            if (!result || !result.success) {
+                contentEl.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">' + (result && result.error ? result.error : 'โหลดข้อมูลไม่สำเร็จ') + '</div>';
+                return;
+            }
+
+            const lc = result.latestCandle;
+            const digits = result.asset === 'GOLD' ? 2 : 2;
+
+            let html = '<div class="glass-card p-4 border border-slate-700 mb-4">' +
+                '<div class="text-xs text-slate-400 mb-2">แท่งล่าสุด (' + lc.date + ')</div>' +
+                '<div class="grid grid-cols-4 gap-2 text-center">' +
+                    '<div><div class="text-[10px] text-slate-500">Open</div><div class="text-sm font-mono text-slate-200">' + lc.open.toFixed(digits) + '</div></div>' +
+                    '<div><div class="text-[10px] text-slate-500">High</div><div class="text-sm font-mono text-green-400">' + lc.high.toFixed(digits) + '</div></div>' +
+                    '<div><div class="text-[10px] text-slate-500">Low</div><div class="text-sm font-mono text-red-400">' + lc.low.toFixed(digits) + '</div></div>' +
+                    '<div><div class="text-[10px] text-slate-500">Close</div><div class="text-sm font-mono ' + (lc.isBullish ? 'text-green-400' : 'text-red-400') + '">' + lc.close.toFixed(digits) + '</div></div>' +
+                '</div>' +
+            '</div>';
+
+            if (!result.patterns || result.patterns.length === 0) {
+                html += '<div class="text-center py-8 text-slate-500 text-sm"><i class="fas fa-search text-2xl mb-2 opacity-30"></i><br>ไม่พบรูปแบบ Price Action ที่ชัดเจนในแท่งล่าสุด</div>';
+            } else {
+                result.patterns.forEach(function(p) {
+                    const signalColor = p.signal === 'bullish' ? 'border-green-700/50 bg-green-900/20' : (p.signal === 'bearish' ? 'border-red-700/50 bg-red-900/20' : 'border-slate-600 bg-slate-800');
+                    const signalIcon = p.signal === 'bullish' ? '📈' : (p.signal === 'bearish' ? '📉' : '⏸️');
+                    html += '<div class="border ' + signalColor + ' rounded-xl p-4 mb-2">' +
+                        '<div class="font-bold text-sm text-slate-100 mb-1">' + signalIcon + ' ' + p.type + '</div>' +
+                        '<div class="text-xs text-slate-400 leading-relaxed">' + p.description + '</div>' +
+                    '</div>';
+                });
+            }
+
+            contentEl.innerHTML = html;
+        }
+
+        function loadTechnicalIndicators() {
+            if (typeof google === 'undefined' || !google.script) return;
+
+            const goldEl = $('techGold');
+            const btcEl = $('techBtc');
+            if (goldEl) goldEl.innerText = 'GOLD: กำลังโหลด...';
+            if (btcEl) btcEl.innerText = 'BTC: กำลังโหลด...';
+
+            function renderTech(el, label, tech) {
+                if (!el) return;
+                if (!tech || !tech.success) {
+                    el.innerHTML = '<span class="text-slate-500">' + label + ': ไม่มีข้อมูล</span>';
+                    return;
+                }
+                const trendColor = tech.trend.indexOf('Up') === 0 ? 'text-green-400' : 'text-red-400';
+                const rsiColor = tech.rsi14 >= 70 ? 'text-red-400' : (tech.rsi14 <= 30 ? 'text-green-400' : 'text-slate-300');
+                const ma50 = tech.ma50 !== null ? tech.ma50.toFixed(2) : 'N/A';
+                const ma200 = tech.ma200 !== null ? tech.ma200.toFixed(2) : 'N/A';
+                const rsi = tech.rsi14 !== null ? tech.rsi14.toFixed(1) : 'N/A';
+                el.innerHTML =
+                    '<div class="font-bold text-slate-300">' + label + '</div>' +
+                    '<div class="text-slate-500">MA50 ' + ma50 + '</div>' +
+                    '<div class="text-slate-500">MA200 ' + ma200 + '</div>' +
+                    '<div>RSI <span class="' + rsiColor + ' font-bold">' + rsi + '</span></div>' +
+                    '<div class="' + trendColor + '">' + tech.trend + '</div>';
+            }
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    renderTech(goldEl, 'GOLD', result.gold);
+                    renderTech(btcEl, 'BTC', result.btc);
+                })
+                .withFailureHandler(function(error) {
+                    console.error('❌ Technical indicators error:', error);
+                    if (goldEl) goldEl.innerText = 'GOLD: โหลดไม่สำเร็จ';
+                    if (btcEl) btcEl.innerText = 'BTC: โหลดไม่สำเร็จ';
+                })
+                .getAllTechnicalIndicators();
+        }
+
         function manualRefreshPrices() {
-            const now = Date.now();
-            const timeSinceLastRefresh = now - lastRefreshTime;
-            
             const btn = $('btnRefreshPrices');
             const icon = $('refreshIcon');
             const text = $('refreshText');
             const timer = $('refreshTimer');
             
-            // ตรวจสอบ cooldown
-            if (timeSinceLastRefresh < refreshCooldown) {
-                const remainingTime = Math.ceil((refreshCooldown - timeSinceLastRefresh) / 1000);
-                if (timer) timer.innerText = `(${remainingTime}s)`;
-                
-                // แสดง shake animation
-                if (btn) {
-                    btn.classList.add('animate-shake');
-                    setTimeout(() => btn.classList.remove('animate-shake'), 500);
-                }
-                return;
-            }
-            
-            // เริ่ม refresh
-            lastRefreshTime = now;
+            lastRefreshTime = Date.now();
+            if (timer) timer.innerText = '';
             
             if (btn) btn.disabled = true;
             if (icon) {
                 icon.className = 'fas fa-sync-alt fa-spin';
             }
             if (text) text.innerText = 'Refreshing...';
-            if (timer) timer.innerText = '';
             
-            // เรียก fetchPrices
-            fetchPrices();
+            // เรียก fetchPrices แบบบังคับข้ามแคช
+            fetchPrices(true);
             
             // คืนสถานะหลัง 2 วินาที
             setTimeout(() => {
                 if (btn) btn.disabled = false;
                 if (icon) icon.className = 'fas fa-sync-alt';
                 if (text) text.innerText = 'Refresh Prices';
-                startRefreshTimer();
             }, 2000);
-        }
-        
-        function startRefreshTimer() {
-            const timer = $('refreshTimer');
-            if (!timer) return;
-            
-            const updateTimer = () => {
-                const now = Date.now();
-                const timeSinceLastRefresh = now - lastRefreshTime;
-                
-                if (timeSinceLastRefresh >= refreshCooldown) {
-                    timer.innerText = '';
-                    return;
-                }
-                
-                const remainingTime = Math.ceil((refreshCooldown - timeSinceLastRefresh) / 1000);
-                timer.innerText = `(${remainingTime}s)`;
-                
-                requestAnimationFrame(updateTimer);
-            };
-            
-            updateTimer();
         }
 
         window.onload = function() {
@@ -1485,7 +2569,7 @@
                 open: [],
                 history: [],
                 config: {
-                    capital: 500,
+                    capital: 0,
                     credit: 0,
                     goalDaily: 10,
                     goalMonthly: 300,
@@ -1506,16 +2590,12 @@
                         console.log('✅ Connection test successful:', result);
                         refreshAll();
                         lastRefreshTime = Date.now();
-                        startRefreshTimer();
+                        loadTechnicalIndicators();
+                        loadPriceAlerts();
                         
-                        // ✅ Basic Plan: เปิด Auto-refresh ทุก 10 นาที (ประหยัด quota)
-                        console.log('🔄 Auto-refresh enabled (10 minute interval)');
-                        setInterval(function() {
-                            console.log('⏰ Auto-refresh triggered');
-                            fetchPrices();
-                            lastRefreshTime = Date.now();
-                            startRefreshTimer();
-                        }, 600000); // 10 minutes
+                        // ✅ Auto-refresh ปิดไว้เพื่อประหยัดโควต้า — ดึงราคาแค่ตอนเปิดหน้า
+                        // กดปุ่ม "Refresh Prices" เองเมื่อต้องการราคาล่าสุด
+                        console.log('ℹ️ Auto-refresh disabled — use the Refresh Prices button to update');
                     })
                     .withFailureHandler(function(error) {
                         console.error('❌ Connection test failed:', error);
@@ -1545,7 +2625,7 @@
             fetchPortfolio();
         }
 
-        function fetchPrices() {
+        function fetchPrices(forceRefresh) {
             if (typeof google !== 'undefined' && google.script) {
                 google.script.run
                     .withSuccessHandler(function(data) {
@@ -1560,6 +2640,7 @@
                         currentPrices.btc = data.bitcoin.price;
                         updateTicker('gold', data.gold);
                         updateTicker('btc', data.bitcoin);
+                        updateLastUpdatedTime();
                         updateFloatingPL();
                         
                         // Update Point Changes - ส่ง changePercent แทน pointChange
@@ -1573,10 +2654,11 @@
                         
                         // Update API Stats
                         if (data.apiCallsThisMonth !== undefined) {
+                            const realQuota = data.quota || 2000;
                             const stats = {
                                 apiCallsThisMonth: data.apiCallsThisMonth,
-                                quota: 500, // Metals.Dev Free Plan
-                                quotaRemaining: 500 - data.apiCallsThisMonth,
+                                quota: realQuota,
+                                quotaRemaining: realQuota - data.apiCallsThisMonth,
                                 cacheIntervalMinutes: Math.round(data.cacheIntervalSeconds / 60),
                                 nextRefreshIn: data.nextRefreshIn
                             };
@@ -1592,7 +2674,7 @@
                         updateTicker('gold', { price: 2655.00, changePercent: 0, source: 'Fallback' });
                         updateTicker('btc', { price: 98000.00, changePercent: 0, source: 'Fallback' });
                     })
-                    .getRealTimePrices();
+                    .getRealTimePrices(!!forceRefresh);
             } else {
                 console.log('📦 Using mock prices (not in GAS)');
                 currentPrices.gold = 2655.00;
@@ -1609,6 +2691,14 @@
                     quotaRemaining: 375
                 });
             }
+        }
+
+        function updateLastUpdatedTime() {
+            const el = $('lastUpdatedTime');
+            if (!el) return;
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            el.innerText = timeStr;
         }
 
         function updateTicker(key, data) {
@@ -1631,6 +2721,7 @@
                 panel.classList.toggle('show');
             }
         }
+window.toggleAPIStats = toggleAPIStats;
         
         function updateAPIUsageDisplay(stats) {
             const displayEl = document.getElementById('apiUsageDisplay');
@@ -1854,6 +2945,11 @@
                 let floatingPL = 0;
                 if (portfolio.open && portfolio.open.length > 0) {
                     portfolio.open.forEach(trade => {
+                        if (trade.livePl) {
+                            floatingPL += parseFloat(trade.pl) || 0;
+                            return;
+                        }
+
                         const currentPrice = trade.asset.includes('XAU') ? currentPrices.gold : currentPrices.btc;
                         if (!currentPrice || currentPrice === 0) return;
                         
@@ -1909,6 +3005,7 @@
                 portfolio.open.forEach(trade => {
                     const el = document.createElement('div');
                     const isBuy = trade.type.includes('BUY');
+                    const isLive = !!trade.livePl;
                     el.className = 'glass-card p-4 border-l-4 '+(isBuy ? 'border-l-green-500' : 'border-l-red-500')+' relative';
                     el.id = 'trade-' + trade.id;
                     el.innerHTML = 
@@ -1916,12 +3013,14 @@
                             '<div>' +
                                 '<span class="font-bold text-lg text-white">'+trade.asset+'</span>' +
                                 '<span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-300 ml-1 tracking-wider">'+trade.type+'</span>' +
+                                (isLive ? '<span class="text-[10px] bg-emerald-600/80 px-1.5 py-0.5 rounded text-white ml-1 tracking-wider"><i class="fas fa-satellite-dish"></i> LIVE</span>' : '') +
                             '</div>' +
                             '<div class="flex gap-2">' +
+                                (isLive ? '' :
                                 '<button onclick="editOrder(\''+trade.id+'\')" class="text-xs bg-blue-700/80 hover:bg-blue-600 px-3 py-1.5 rounded-lg text-white border border-blue-600">' +
                                     '<i class="fas fa-edit"></i> Edit' +
                                 '</button>' +
-                                '<button onclick="closeOrder(\''+trade.id+'\')" class="text-xs bg-slate-700/80 hover:bg-slate-600 px-3 py-1.5 rounded-lg text-white border border-slate-600">Close</button>' +
+                                '<button onclick="closeOrder(\''+trade.id+'\')" class="text-xs bg-slate-700/80 hover:bg-slate-600 px-3 py-1.5 rounded-lg text-white border border-slate-600">Close</button>') +
                             '</div>' +
                         '</div>' +
                         '<div class="flex justify-between items-end">' +
@@ -2113,20 +3212,26 @@
             
             let totalFloat = 0;
             portfolio.open.forEach(trade => {
-                const currentPrice = trade.asset.includes('XAU') ? currentPrices.gold : currentPrices.btc;
-                if (!currentPrice || currentPrice === 0) return;
-                
-                let contract = 100000;
-                if (trade.asset.includes('XAU')) contract = 100;
-                if (trade.asset.includes('BTC')) contract = 1;
-                
                 let isPending = trade.type.includes('LIMIT') || trade.type.includes('STOP');
                 let pl = 0;
 
-                if (!isPending) {
-                    let diff = trade.type.includes('BUY') ? (currentPrice - trade.entry) : (trade.entry - currentPrice);
-                    pl = (diff * trade.lots * contract) + parseFloat(trade.swap || 0);
+                if (trade.livePl) {
+                    // โพซิชันที่ซิงค์มาจาก MT4/MT5 จริง ใช้กำไร/ขาดทุนจากโบรคเกอร์ตรงๆ
+                    pl = parseFloat(trade.pl) || 0;
                     totalFloat += pl;
+                } else {
+                    const currentPrice = trade.asset.includes('XAU') ? currentPrices.gold : currentPrices.btc;
+                    if (!currentPrice || currentPrice === 0) return;
+                    
+                    let contract = 100000;
+                    if (trade.asset.includes('XAU')) contract = 100;
+                    if (trade.asset.includes('BTC')) contract = 1;
+                    
+                    if (!isPending) {
+                        let diff = trade.type.includes('BUY') ? (currentPrice - trade.entry) : (trade.entry - currentPrice);
+                        pl = (diff * trade.lots * contract) + parseFloat(trade.swap || 0);
+                        totalFloat += pl;
+                    }
                 }
 
                 const el = document.getElementById('trade-' + trade.id);
@@ -2417,6 +3522,11 @@
             
             let totalFloat = 0;
             portfolio.open.forEach(trade => {
+                if (trade.livePl) {
+                    totalFloat += parseFloat(trade.pl) || 0;
+                    return;
+                }
+
                 const currentPrice = trade.asset.includes('XAU') ? currentPrices.gold : currentPrices.btc;
                 if (!currentPrice || currentPrice === 0) return;
                 
@@ -2439,6 +3549,27 @@
         function setWithdrawalAmount(amount) {
             const amountEl = $('withdrawalAmount');
             if (amountEl) amountEl.value = amount;
+        }
+
+        function openBankApp(bank) {
+            const apps = {
+                kplus:     { ios: '361170631',  android: 'com.kasikorn.retail.mbanking.wap' },
+                scb:       { ios: '568388474',  android: 'com.scb.phone' },
+                ktb:       { ios: '436753378',  android: 'ktbcs.netbank' },
+                bbl:       { ios: '660238716',  android: 'com.bbl.mobilebanking' },
+                truemoney: { ios: '663885752',  android: 'th.co.truemoney.wallet' }
+            };
+            const info = apps[bank];
+            if (!info) return;
+
+            const ua = navigator.userAgent || '';
+            const isIOS = /iPad|iPhone|iPod/.test(ua);
+
+            if (isIOS) {
+                window.open('https://apps.apple.com/th/app/id' + info.ios, '_blank');
+            } else {
+                window.open('https://play.google.com/store/apps/details?id=' + info.android, '_blank');
+            }
         }
 
         function setMaxWithdrawal() {
@@ -2522,6 +3653,205 @@
         }
 
         // ===================================
+        // DEPOSIT FUNCTIONS
+        // ===================================
+
+        function openDepositModal() {
+            const modal = $('depositModal');
+            if (!modal) return;
+
+            const balanceEl = $('depositCurrentBalance');
+            if (balanceEl) balanceEl.innerText = '$' + formatMoney(portfolio.balance || 0);
+
+            const amountEl = $('depositAmount');
+            const methodEl = $('depositMethod');
+            const noteEl = $('depositNote');
+
+            if (amountEl) amountEl.value = '';
+            if (methodEl) methodEl.value = 'bank';
+            if (noteEl) noteEl.value = '';
+
+            const qrArea = $('depositQRArea');
+            const errorArea = $('depositQRError');
+            if (qrArea) qrArea.classList.add('hidden');
+            if (errorArea) errorArea.classList.add('hidden');
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeDepositModal() {
+            const modal = $('depositModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function setDepositAmount(amount) {
+            const amountEl = $('depositAmount');
+            if (amountEl) amountEl.value = amount;
+        }
+
+        function generateDepositQR() {
+            const amountEl = $('depositAmount');
+            const qrArea = $('depositQRArea');
+            const qrImage = $('depositQRImage');
+            const errorArea = $('depositQRError');
+
+            const amount = parseFloat(amountEl.value) || 0;
+            if (amount <= 0) {
+                alert('⚠️ กรุณากรอกจำนวนเงินก่อนสร้าง QR');
+                return;
+            }
+
+            if (qrArea) qrArea.classList.add('hidden');
+            if (errorArea) errorArea.classList.add('hidden');
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        if (qrImage) qrImage.src = result.qrUrl;
+                        if (qrArea) qrArea.classList.remove('hidden');
+                    } else {
+                        if (errorArea) {
+                            errorArea.innerText = '⚠️ ' + result.error;
+                            errorArea.classList.remove('hidden');
+                        }
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error('❌ QR generation error:', error);
+                    if (errorArea) {
+                        errorArea.innerText = '⚠️ เกิดข้อผิดพลาดในการสร้าง QR';
+                        errorArea.classList.remove('hidden');
+                    }
+                })
+                .getPromptPayQR(amount);
+        }
+
+        function processDeposit() {
+            const amountEl = $('depositAmount');
+            const methodEl = $('depositMethod');
+            const noteEl = $('depositNote');
+
+            const amount = parseFloat(amountEl.value) || 0;
+            const method = methodEl.value || 'bank';
+            const note = noteEl.value || '';
+
+            if (amount <= 0) {
+                alert('⚠️ กรุณากรอกจำนวนเงินฝากให้ถูกต้อง');
+                return;
+            }
+
+            const methodName = method === 'bank' ? 'Bank Transfer' :
+                               method === 'wallet' ? 'E-Wallet' : 'Cryptocurrency';
+
+            if (!confirm(
+                '💵 ยืนยันการฝากเงิน\n\n' +
+                'จำนวน: $' + formatMoney(amount) + '\n' +
+                'ช่องทาง: ' + methodName + '\n' +
+                (note ? 'หมายเหตุ: ' + note + '\n' : '') +
+                '\nดำเนินการฝากเงินหรือไม่?'
+            )) {
+                return;
+            }
+
+            console.log('💵 Processing deposit...', { amount, method, note });
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        alert('✅ ฝากเงินสำเร็จ!\n\nจำนวน: $' + formatMoney(amount) + '\nยอดคงเหลือใหม่: $' + formatMoney(result.newBalance));
+                        closeDepositModal();
+                        refreshAll();
+                    } else {
+                        alert('❌ ฝากเงินไม่สำเร็จ: ' + (result.error || 'Unknown error'));
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error('❌ Deposit error:', error);
+                    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+                })
+                .processDeposit(amount, method, note);
+        }
+
+        // ===================================
+        // FUND TRANSACTION HISTORY
+        // ===================================
+
+        function openFundHistoryModal() {
+            const modal = $('fundHistoryModal');
+            if (!modal) return;
+
+            const listEl = $('fundHistoryList');
+            if (listEl) {
+                listEl.innerHTML = '<div class="text-center py-10 text-slate-500 text-sm"><i class="fas fa-spinner fa-spin text-2xl mb-2 opacity-50"></i><br>กำลังโหลด...</div>';
+            }
+
+            modal.classList.remove('hidden');
+
+            if (typeof google !== 'undefined' && google.script) {
+                google.script.run
+                    .withSuccessHandler(function(transactions) {
+                        renderFundHistory(transactions);
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('❌ Error loading fund history:', error);
+                        if (listEl) {
+                            listEl.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">โหลดข้อมูลไม่สำเร็จ</div>';
+                        }
+                    })
+                    .getFundTransactionHistory();
+            }
+        }
+
+        function closeFundHistoryModal() {
+            const modal = $('fundHistoryModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function renderFundHistory(transactions) {
+            const listEl = $('fundHistoryList');
+            if (!listEl) return;
+
+            if (!transactions || transactions.length === 0) {
+                listEl.innerHTML = '<div class="text-center py-10 text-slate-500 text-sm"><i class="fas fa-receipt text-2xl mb-2 opacity-30"></i><br>ยังไม่มีรายการฝาก-ถอน</div>';
+                return;
+            }
+
+            let html = '';
+            transactions.forEach(function(tx) {
+                const isDeposit = tx.type === 'deposit';
+                const dateObj = new Date(tx.timestamp);
+                const dateStr = isNaN(dateObj) ? 'N/A' : dateObj.toLocaleDateString('th-TH', {
+                    day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+
+                html += '<div class="glass-card p-3 border border-slate-800">' +
+                    '<div class="flex justify-between items-center">' +
+                        '<div class="flex items-center gap-3">' +
+                            '<div class="w-9 h-9 rounded-lg flex items-center justify-center ' +
+                                (isDeposit ? 'bg-blue-500/10 text-blue-400' : 'bg-emerald-500/10 text-emerald-400') + '">' +
+                                '<i class="fas ' + (isDeposit ? 'fa-plus-circle' : 'fa-money-bill-wave') + '"></i>' +
+                            '</div>' +
+                            '<div>' +
+                                '<div class="font-bold text-sm text-slate-200">' + (isDeposit ? 'ฝากเงิน' : 'ถอนเงิน') +
+                                    ' <span class="text-[10px] text-slate-500 font-normal">(' + (tx.method || '') + ')</span></div>' +
+                                '<div class="text-[10px] text-slate-500">' + dateStr + '</div>' +
+                                (tx.note ? '<div class="text-[10px] text-slate-400 mt-0.5">' + tx.note + '</div>' : '') +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="text-right">' +
+                            '<div class="font-mono font-bold text-sm ' + (isDeposit ? 'text-blue-400' : 'text-emerald-400') + '">' +
+                                (isDeposit ? '+' : '-') + '$' + formatMoney(tx.amount) +
+                            '</div>' +
+                            '<div class="text-[10px] text-slate-500">คงเหลือ: $' + formatMoney(tx.balanceAfter) + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            });
+
+            listEl.innerHTML = html;
+        }
+
+        // ===================================
         // AI NEWS ANALYSIS FUNCTIONS
         // ===================================
 
@@ -2548,6 +3878,7 @@
             
             modal.classList.remove('hidden');
         }
+window.openNewsAnalysisModal = openNewsAnalysisModal;
 
         function closeNewsAnalysisModal() {
             const modal = $('newsAnalysisModal');
@@ -2578,6 +3909,7 @@
             
             modal.classList.remove('hidden');
         }
+window.openImportModal = openImportModal;
 
         function closeImportModal() {
             const modal = $('importModal');
@@ -3205,6 +4537,7 @@
             }
             setTimes(); 
         }
+window.openTradeModal = openTradeModal;
         
         function closeTradeModal() { 
             const contentEl = $('modalContent');
@@ -3324,7 +4657,7 @@
                     console.warn('Portfolio data not loaded yet, using defaults');
                     portfolio = {
                         config: {
-                            capital: 500,
+                            capital: 0,
                             credit: 0,
                             goalDaily: 10,
                             goalMonthly: 300,
@@ -3335,7 +4668,7 @@
                             lineGroupId: ''
                         },
                         realizedPL: 0,
-                        balance: 500,
+                        balance: 0,
                         open: [],
                         history: []
                     };
@@ -3350,6 +4683,7 @@
                 const lineTokenInput = $('settingLineToken');
                 const lineUserIdInput = $('settingLineUserId');
                 const lineGroupIdInput = $('settingLineGroupId');
+                const promptPayIdInput = $('settingPromptPayId');
                 const modal = $('settingsModal');
                 
                 if (capitalInput) capitalInput.value = portfolio.config.capital || 0;
@@ -3361,6 +4695,33 @@
                 if (lineTokenInput) lineTokenInput.value = portfolio.config.lineChannelAccessToken || '';
                 if (lineUserIdInput) lineUserIdInput.value = portfolio.config.lineUserId || '';
                 if (lineGroupIdInput) lineGroupIdInput.value = portfolio.config.lineGroupId || '';
+                if (promptPayIdInput) promptPayIdInput.value = portfolio.config.promptPayId || '';
+                
+                if (typeof google !== 'undefined' && google.script) {
+                    google.script.run.withSuccessHandler(function(val) {
+                        var goldOffsetInput = $('settingGoldOffset');
+                        if (goldOffsetInput) goldOffsetInput.value = val;
+                    }).getGoldOffset();
+
+                    google.script.run.withSuccessHandler(function(quotaInfo) {
+                        var planEl = $('apiCurrentPlan');
+                        var descEl = $('apiProviderDesc');
+                        if (planEl) planEl.innerText = quotaInfo.planName;
+                        if (descEl) descEl.innerText = 'Real-time precious metals prices \u00b7 ' + quotaInfo.quota + ' calls/month';
+                    }).getAPIQuota();
+
+                    google.script.run.withSuccessHandler(function(usage) {
+                        var countEl = $('apiUsageCount');
+                        var barEl = $('apiUsageBarFill');
+                        var percentEl = $('apiUsagePercent');
+                        if (countEl) countEl.innerText = usage.apiCallsThisMonth + ' / ' + usage.quota;
+                        if (percentEl) percentEl.innerText = usage.quotaUsedPercent + '%';
+                        if (barEl) {
+                            barEl.style.width = Math.min(100, usage.quotaUsedPercent) + '%';
+                            barEl.className = 'quota-bar-fill' + (usage.quotaUsedPercent >= 90 ? ' critical' : usage.quotaUsedPercent >= 50 ? ' warning' : '');
+                        }
+                    }).getAPIUsageStats();
+                }
                 
                 if (modal) {
                     modal.classList.remove('hidden');
@@ -3371,6 +4732,26 @@
                 console.error('Error opening settings:', e);
                 alert('Error opening settings. Please refresh the page.');
             }
+        }
+window.openSettings = openSettings;
+
+        function saveGoldOffsetSetting() {
+            var input = $('settingGoldOffset');
+            var val = input ? parseFloat(input.value) || 0 : 0;
+            var statusEl = $('goldOffsetStatus');
+            if (statusEl) statusEl.innerText = 'กำลังบันทึก...';
+            
+            google.script.run
+                .withSuccessHandler(function() {
+                    if (statusEl) {
+                        statusEl.innerText = '✓ บันทึกแล้ว';
+                        setTimeout(function(){ statusEl.innerText = ''; }, 2000);
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    if (statusEl) statusEl.innerText = '❌ ผิดพลาด: ' + err;
+                })
+                .setGoldOffset(val);
         }
 
         function closeSettings() {
@@ -3390,6 +4771,7 @@
             const lineTokenEl = $('settingLineToken');
             const lineUserIdEl = $('settingLineUserId');
             const lineGroupIdEl = $('settingLineGroupId');
+            const promptPayIdEl = $('settingPromptPayId');
             
             const data = {
                 capital: capitalEl ? parseFloat(capitalEl.value) || 0 : 0,
@@ -3400,7 +4782,8 @@
                 profitAlertThreshold: profitAlertEl ? parseFloat(profitAlertEl.value) || 100 : 100,
                 lineChannelAccessToken: lineTokenEl ? lineTokenEl.value || '' : '',
                 lineUserId: lineUserIdEl ? lineUserIdEl.value || '' : '',
-                lineGroupId: lineGroupIdEl ? lineGroupIdEl.value || '' : ''
+                lineGroupId: lineGroupIdEl ? lineGroupIdEl.value || '' : '',
+                promptPayId: promptPayIdEl ? promptPayIdEl.value || '' : ''
             };
             
             const btn = $('btnUpdateSettings');
@@ -4053,7 +5436,7 @@
         function updateRiskLimits() {
             if (!portfolio || !portfolio.config) return;
             
-            const capital = portfolio.config.capital || 500;
+            const capital = portfolio.config.capital || 0;
             const balance = portfolio.balance || capital;
             
             const maxDailyRisk = (capital * 0.02).toFixed(2);
@@ -4078,6 +5461,31 @@
         }
     
     </script>
+<script>
+// Deep-link support: open a specific modal based on ?open= query param (used by LINE Rich Menu)
+(function() {
+  function openTarget(target) {
+    if (!target) return;
+    setTimeout(function() {
+      try {
+        if (target === 'trade' && typeof window.openTradeModal === 'function') window.openTradeModal();
+        else if (target === 'news' && typeof window.openNewsAnalysisModal === 'function') window.openNewsAnalysisModal();
+        else if (target === 'import' && typeof window.openImportModal === 'function') window.openImportModal();
+        else if (target === 'stats' && typeof window.toggleAPIStats === 'function') window.toggleAPIStats();
+        else if (target === 'settings' && typeof window.openSettings === 'function') window.openSettings();
+      } catch(e) { console.error('Deep-link open failed:', e); }
+    }, 1000);
+  }
+
+  if (window.google && google.script && google.script.url) {
+    google.script.url.getLocation(function(loc) {
+      openTarget(loc.parameter && loc.parameter.open);
+    });
+  } else {
+    var params = new URLSearchParams(window.location.search);
+    openTarget(params.get('open'));
+  }
+})();
+</script>
 </body>
 </html>
-
