@@ -1,0 +1,42 @@
+# ดึงปฏิทินเศรษฐกิจ Forex Factory มาเก็บไว้ใน repo ทุก 4 ชม.
+# เหตุผล: Forex Factory ตอบ HTTP 429 กับเซิร์ฟเวอร์ Google Apps Script (IP ร่วมกันเยอะ)
+# Apps Script จะอ่านไฟล์นี้จาก raw.githubusercontent.com แทน (ฟรี)
+name: FF calendar mirror
+
+on:
+  schedule:
+    - cron: '17 */4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ff-calendar-mirror
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch Forex Factory this-week calendar
+        run: |
+          mkdir -p docs/data
+          curl -fsSL -A 'Mozilla/5.0' --retry 3 --retry-delay 30 --retry-all-errors \
+            https://nfs.faireconomy.media/ff_calendar_thisweek.json -o /tmp/ff.json
+          python3 -c "import json; d=json.load(open('/tmp/ff.json')); assert isinstance(d, list) and len(d) > 0; print(len(d), 'events')"
+          cp /tmp/ff.json docs/data/ff_calendar_thisweek.json
+
+      - name: Commit if changed
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/data/ff_calendar_thisweek.json
+          if git diff --cached --quiet; then
+            echo 'No change'
+          else
+            git commit -m 'Update FF calendar mirror'
+            git push
+          fi
